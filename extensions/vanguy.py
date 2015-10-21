@@ -3,7 +3,7 @@
 
 #  BlackSmith plugin
 
-# from BlackSmith import GROUPCHATS
+execfile("imports/command_handler_custom.py")
 
 __author__ = 'shtrih'
 
@@ -25,7 +25,7 @@ def handler_vanguy(type, source, body):
     list_bin = [
         "%s — никогда!",
         "%s? Забудь об этом",
-        "%s? Да, хотя зря.",
+        "Да, хотя зря.",
         "%s, инфа сотыга",
     ]
 
@@ -46,4 +46,5 @@ def handler_vanguy(type, source, body):
 
     reply(type, source, message)
 
-command_handler(handler_vanguy, 10, "vanguy")
+# command_handler(handler_vanguy, 10, "vanguy")
+command_handler_custom(handler_vanguy, 10, "vanguy")
