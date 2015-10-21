@@ -8,7 +8,7 @@
 __author__ = 'shtrih'
 
 import re
-from random import randint
+from random import randint, choice
 import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -26,7 +26,7 @@ def handler_vanguy(type, source, body):
         "%s — никогда!",
         "%s? Забудь об этом",
         "%s? Да, хотя зря.",
-        "%s, инфа сотка",
+        "%s, инфа сотыга",
     ]
 
     match = re.match(u"\s*[,:]?\s*(.*[^\s])\s+или\s+(.*[^\s.?])[.?]?", body, re.U | re.I)
@@ -35,14 +35,14 @@ def handler_vanguy(type, source, body):
         selected = match.group(randint(1, 2))
         selected = selected[0].upper() + selected[1:]
 
-        message = list_or[randint(0, len(list_or) - 1)] % selected
+        message = choice(list_or) % selected
 
     match = re.match(u"\s*[,:]?\s*(.*[^\s.?])[.?]?", body, re.U | re.I)
     if match is not None:
         selected = match.group(1)
         selected = selected[0].upper() + selected[1:]
 
-        message = list_bin[randint(0, len(list_bin) - 1)] % selected
+        message = choice(list_bin) % selected
 
     reply(type, source, message)
 
