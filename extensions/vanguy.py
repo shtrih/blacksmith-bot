@@ -17,34 +17,39 @@ def handler_vanguy(type, source, body):
         "%s, да. Инфа 100%%.",
         "%s.",
         "%s. Мне мой знакомый сказал, которому я доверяю.",
-        "Точно %s, мне Спок-кот из альтернативной Вселенной сказал, что так будет.",
+        "Точно %s, мне Спок-кот из альтернативной Вселенной сказал.",
         "Тебе уебать? %s, ясен пень",
-        "Чтобы %s? Да никогда в жизни",
+        "%s? Да никогда в жизни",
         "Очевидно, что %s, другого не дано.",
     ]
     list_bin = [
         "%s — никогда!",
         "%s? Забудь об этом",
-        "Да, хотя зря.",
+        "%s — Да, хотя зря.",
         "%s, инфа сотыга",
+        "Да, инфа %d%%",
     ]
 
-    match = re.match(u"\s*[,:]?\s*(.*[^\s])\s+или\s+(.*[^\s.?])[.?]?", body, re.U | re.I)
+    match = re.match(u"\s*(.*[^\s])\s+или\s+(.*[^\s.?])[.?]?", body, re.U | re.I)
     if match is not None:
         # logging.debug(match.groups())
         selected = match.group(randint(1, 2))
-        selected = selected[0].upper() + selected[1:]
+        # selected = selected[0].upper() + selected[1:]
 
         message = choice(list_or) % selected
+        reply(type, source, message)
+    else:
+        match = re.match(u"\s*(.*[^\s.?])[.?]?", body, re.U | re.I)
+        if match is not None:
+            selected = match.group(1)
+            # selected = selected[0].upper() + selected[1:]
+            message = choice(list_bin)
+            if message == list_bin[4]:
+                message %= randint(0, 101)
+            else:
+                message %= selected
 
-    match = re.match(u"\s*[,:]?\s*(.*[^\s.?])[.?]?", body, re.U | re.I)
-    if match is not None:
-        selected = match.group(1)
-        selected = selected[0].upper() + selected[1:]
-
-        message = choice(list_bin) % selected
-
-    reply(type, source, message)
+            reply(type, source, message)
 
 # command_handler(handler_vanguy, 10, "vanguy")
 command_handler_custom(handler_vanguy, 10, "vanguy")
