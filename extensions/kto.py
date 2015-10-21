@@ -12,6 +12,12 @@ from random import randint
 import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# TODO: обработка случаев с «мои=твои», мой=твой», я=ты
+# Кто обмазался моим несвежим говном и отчаянно мастурбирует?
+# Кто я?
+# Кто лизал мои тапки?
+# http://puu.sh/kSftk/1b25ea57f4.png
+
 def handler_kto(type, source, body):
     list = [
         "Вне всякого сомнения %(action)s конечно же %(nick)s. Инфа 100%%.",
