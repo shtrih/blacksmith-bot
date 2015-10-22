@@ -5,18 +5,15 @@
 #  kto.py
 
 # from BlackSmith import GROUPCHATS
+from imports.possessive_pronouns import invert
 
 __author__ = 'shtrih'
 
 from random import choice
-import logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# TODO: обработка случаев с «мои=твои», мой=твой», я=ты
-# Кто обмазался моим несвежим говном и отчаянно мастурбирует?
-# Кто я?
-# Кто лизал мои тапки?
-# http://puu.sh/kSftk/1b25ea57f4.png
+# http://inventwithpython.com/blog/2012/04/06/stop-using-print-for-debugging-a-5-minute-quickstart-guide-to-pythons-logging-module/
+# import logging
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def handler_kto(type, source, body):
     list = [
@@ -32,13 +29,21 @@ def handler_kto(type, source, body):
         "Очевидно, что %(action)s %(nick)s, другого не дано.",
     ]
     users = [
-        'ты'
+        'ты сам'
     ]
 
     if source[1] in GROUPCHATS:
         users = GROUPCHATS[source[1]].keys()
         # logging.debug(users)
 
-    reply(type, source, choice(list) % {"action": body[:-1], "nick" : choice(users)})
+    # если последний символ не буквоцифра, значит знак препинания. Отрезаем.
+    if not body[-1::1].isalnum():
+        body = body[:-1]
+
+    # logging.debug(invert(body))
+
+    message = choice(list) % {"action": invert(body), "nick": choice(users)}
+
+    reply(type, source, message)
 
 command_handler(handler_kto, 10, "kto")
