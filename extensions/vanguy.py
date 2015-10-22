@@ -2,6 +2,7 @@
 # /* coding: utf-8 */
 
 #  BlackSmith plugin
+from imports.possessive_pronouns import invert
 
 execfile("imports/command_handler_custom.py")
 
@@ -32,18 +33,18 @@ def handler_vanguy(type, source, body):
         "Да, инфа %d%%",
     ]
 
-    match = re.match(u"\s*(.*[^\s])\s+или\s+(.*[^\s.?])[.?]?", body, re.U | re.I)
+    match = re.match(ur"\s*(.*[^\s])\s+или\s+(.*[^\s.?])[.?]?", body, re.U | re.I)
     if match is not None:
         # logging.debug(match.groups())
-        selected = match.group(randint(1, 2))
+        selected = invert(match.group(randint(1, 2)))
         # selected = selected[0].upper() + selected[1:]
 
         message = choice(list_or) % selected
         reply(type, source, message)
     else:
-        match = re.match(u"\s*(.*[^\s.?])[.?]?", body, re.U | re.I)
+        match = re.match(ur"\s*(.*[^\s.?])[.?]?", body, re.U | re.I)
         if match is not None:
-            selected = match.group(1)
+            selected = invert(match.group(1))
             # selected = selected[0].upper() + selected[1:]
             message = choice(list_bin)
             if message == list_bin[4]:

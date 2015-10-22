@@ -16,7 +16,7 @@ from random import choice
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def handler_kto(type, source, body):
-    list = [
+    answers = [
         "Вне всякого сомнения, %(action)s конечно же %(nick)s. Инфа 100%%.",
         "%(action)s стопроцентно %(nick)s. Мне мой знакомый сказал, которому я доверяю.",
         "Кто %(action)s, говоришь? Я не буду пальцем показывать, да и %(nick)s расстроится.",
@@ -42,7 +42,7 @@ def handler_kto(type, source, body):
 
     # logging.debug(invert(body))
 
-    message = choice(list) % {"action": invert(body), "nick": choice(users)}
+    message = choice(answers) % {"action": invert(body), "nick": choice(users)}
 
     reply(type, source, message)
 
