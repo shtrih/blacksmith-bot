@@ -154,19 +154,20 @@ UNAVAILABLE = []
 COMMAND_HANDLERS = {}
 cPrefs = ("!", "@", "#", ".", "*", "?", "`")
 
-
-XEPs = set((xmpp.NS_VERSION, 
-			xmpp.NS_PING, 
-			xmpp.NS_TIME, 
-			xmpp.NS_URN_TIME,
-			xmpp.NS_LAST, 
-			xmpp.NS_DISCO_INFO,
-			xmpp.NS_CAPS,
-			xmpp.NS_SASL,
-			xmpp.NS_TLS,
-			xmpp.NS_MUC,
-			xmpp.NS_ROSTER,
-			xmpp.NS_RECEIPTS))
+XEPs = {
+	xmpp.NS_VERSION,
+	xmpp.NS_PING,
+	xmpp.NS_TIME,
+	xmpp.NS_URN_TIME,
+	xmpp.NS_LAST,
+	xmpp.NS_DISCO_INFO,
+	xmpp.NS_CAPS,
+	xmpp.NS_SASL,
+	xmpp.NS_TLS,
+	xmpp.NS_MUC,
+	xmpp.NS_ROSTER,
+	xmpp.NS_RECEIPTS
+}
 
 MACROS = macros.Macros()
 
@@ -183,14 +184,14 @@ if os.name == "nt":
 
 elif os.name == "posix":
 	from platform import dist
-	dist, uname = dist(), os.uname()
-	if dist[0]:
-		os_simple = u"%s, %s" % (dist[0], uname[0])
-		os_name = "POSIX (%s %s)" % (os_simple, uname[2])
+	_dist, _uname = dist(), os.uname()
+	if _dist[0]:
+		os_simple = u"%s, %s" % (_dist[0], _uname[0])
+		os_name = "POSIX (%s %s)" % (os_simple, _uname[2])
 	else:
-		os_simple = uname[0]
-		os_name = "POSIX (%s, %s)" % (os_simple, uname[2])
-	del dist, uname
+		os_simple = _uname[0]
+		os_name = "POSIX (%s, %s)" % (os_simple, _uname[2])
+	del _dist, _uname
 else:
 	os_name = os.name.upper()
 

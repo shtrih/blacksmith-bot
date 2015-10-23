@@ -1,7 +1,7 @@
 # /* coding: utf-8 */
 
-from traceback import print_exc
-from BlackSmith import COMMANDS, COMMAND_HANDLERS, COMMSTAT, Print, read_file, color2
+# from traceback import print_exc
+# from BlackSmith import COMMANDS, COMMAND_HANDLERS, COMMSTAT, Print, read_file, color2
 import six
 # import logging
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -22,7 +22,7 @@ def command_handler_custom(instance, access = 0, plug = "default"):
             commands = [commands]
     except:
         print_exc()
-        command = instance.func_name.lower()
+        commands.append(instance.func_name.lower())
         Print("\nPlugin \"%s\" has no help and command name. New command name: %s." % (plug, command), color2)
 
     for command in commands:
