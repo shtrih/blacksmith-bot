@@ -10,8 +10,8 @@ __author__ = 'shtrih'
 
 import re
 from random import randint, choice
-import logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+# import logging
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def handler_vanguy(type, source, body):
     list_or = [
@@ -28,9 +28,13 @@ def handler_vanguy(type, source, body):
     list_bin = [
         "%s — никогда!",
         "%s? Забудь об этом",
+        "Нет, инфа %d%%",
+        "Что? %s? Ты что, ёбнулся, конечно нет!",
+
         "%s — Да, хотя зря.",
         "%s, инфа сотыга",
         "Да, инфа %d%%",
+        "%s. Я гарантирую.",
     ]
 
     match = re.match(ur"\s*(.*[^\s])\s+или\s+(.*[^\s.?])[.?]?", body, re.U | re.I)
@@ -47,7 +51,7 @@ def handler_vanguy(type, source, body):
             selected = invert(match.group(1))
             # selected = selected[0].upper() + selected[1:]
             message = choice(list_bin)
-            if message == list_bin[4]:
+            if message.find('%d') != -1:
                 message %= randint(0, 101)
             else:
                 message %= selected

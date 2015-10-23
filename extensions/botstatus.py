@@ -7,7 +7,7 @@
 # Coded by: WitcherGeralt (WitcherGeralt@jabber.ru)
 # http://witcher-team.ucoz.ru/
 
-DEF_STATUS = {'message': u'пиши "хелп", чтобы понять как со мной работать', 'status': 'chat'}
+DEF_STATUS = {'message': u'пиши «комлист», чтобы узнать список команд', 'status': 'chat'}
 STATUS_LIST = {u'ушел': 'away', u'нет': 'xa', u'занят': 'dnd', u'чат': 'chat'}
 
 ROSTER_STATUS_FILE = 'dynamic/status.txt'
