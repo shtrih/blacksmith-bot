@@ -94,6 +94,7 @@ def handler_load_plugin(type, source, body):
 			try:
 				execfile('%s/%s.py' % (EXT_DIR, ext), globals())
 				repl = u'Плагин %s был успешно подгружен!' % (ext)
+				out_write()
 			except:
 				repl = u'Плагин %s не был подгружен!\nОшибка: %s' % (ext, returnExc())
 		else:
