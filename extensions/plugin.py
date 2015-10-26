@@ -31,14 +31,22 @@ def handler_out_list(type, source):
 
 def handler_command_out(type, source, body):
 	if body:
-		command = body.lower()
-		if command in COMMANDS:
-			OUT_COMMANDS[command] = COMMANDS[command]
-			del COMMANDS[command]
-			reply(type, source, u'Команда "%s" глобально отключена' % (command))
-			out_write()
-		else:
-			reply(type, source, u'нет такой команды')
+		notfound_commands = []
+		commands = body.lower().split(' ')
+		for command in commands:
+			if command in COMMANDS:
+				OUT_COMMANDS[command] = COMMANDS[command]
+				del COMMANDS[command]
+			else:
+				notfound_commands.append(command)
+
+		message = ''
+		if len(notfound_commands):
+			message = u'\nНе найдены команды: «' + '», «'.join(notfound_commands) + '».'
+
+		message = u'Команды «{0}» глобально отключены.'.format('», «'.join( list(set(commands) - set(notfound_commands))) ) + message
+		reply(type, source, message)
+		out_write()
 	else:
 		handler_out_list(type, source)
 
