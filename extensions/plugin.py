@@ -5,19 +5,19 @@
 #  plugin.py
 
 #  Copyleft
-from BlackSmith import read_file, Print
+# from BlackSmith import read_file, Print, write_file
 
 OUT_COMMANDS = {}
 
 def out_init():
 	try:
-		out_list = eval(read_file('dynamic/out_commands.txt'))
+		out_list = eval(read_file('dynamic/out_commands.txt').decode('utf-8'))
 		for command in out_list:
 			OUT_COMMANDS[command] = out_list[command]
 			del COMMANDS[command]
-		Print('\n\nСписок отключённых команд: ' + ', '.join(sorted(OUT_COMMANDS.keys())), color3)
+		Print('\n\nСписок отключенных команд: ' + ', '.join(sorted(OUT_COMMANDS.keys())), color3)
 	except:
-		pass
+		Print('Не удалось прочитать список отключенных команд out_commands.', color1)
 
 def out_write():
 	write_file('dynamic/out_commands.txt', str(OUT_COMMANDS))

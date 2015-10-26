@@ -287,7 +287,7 @@ def command_handler(instance, access = 0, plug = "default"):
 		print_exc()
 		command = instance.func_name.lower()
 		Print("\nPlugin \"%s\" has no help and command name. New command name: %s." % (plug, command), color2)
-	if COMMANDS.get(command) or COMMAND_HANDLERS.get(command):
+	if COMMANDS.get(command):# or COMMAND_HANDLERS.get(command):
 		if plug != COMMANDS[command].get("plug"):
 			Print("\nCommands in \"%s\" and \"%s\" are repeated." % (plug, COMMANDS[command].get("plug")), color2)
 			command += "1"

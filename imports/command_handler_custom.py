@@ -27,7 +27,7 @@ def command_handler_custom(instance, access = 0, plug = "default"):
 
     for command in commands:
         # logging.debug(command)
-        if COMMANDS.get(command) or COMMAND_HANDLERS.get(command):
+        if COMMANDS.get(command):# or COMMAND_HANDLERS.get(command):
             if plug != COMMANDS[command].get("plug"):
                 Print("\nCommands in \"%s\" and \"%s\" are repeated." % (plug, COMMANDS[command].get("plug")), color2)
                 command += "1"
