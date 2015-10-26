@@ -5,8 +5,22 @@
 #  plugin.py
 
 #  Copyleft
+from BlackSmith import read_file, Print
 
 OUT_COMMANDS = {}
+
+def out_init():
+	try:
+		out_list = eval(read_file('dynamic/out_commands.txt'))
+		for command in out_list:
+			OUT_COMMANDS[command] = out_list[command]
+			del COMMANDS[command]
+		Print('\n\nСписок отключённых команд: ' + ', '.join(sorted(OUT_COMMANDS.keys())), color3)
+	except:
+		pass
+
+def out_write():
+	write_file('dynamic/out_commands.txt', str(OUT_COMMANDS))
 
 def handler_out_list(type, source):
 	if OUT_COMMANDS:
@@ -22,6 +36,7 @@ def handler_command_out(type, source, body):
 			OUT_COMMANDS[command] = COMMANDS[command]
 			del COMMANDS[command]
 			reply(type, source, u'Команда "%s" глобально отключена' % (command))
+			out_write()
 		else:
 			reply(type, source, u'нет такой команды')
 	else:
@@ -34,6 +49,7 @@ def handler_from_out_com(type, source, body):
 			COMMANDS[command] = OUT_COMMANDS[command]
 			del OUT_COMMANDS[command]
 			reply(type, source, u'Команда "%s" включена' % (command))
+			out_write()
 		else:
 			reply(type, source, u'в базе возврата нет этой команды')
 	else:
@@ -78,6 +94,7 @@ def handler_load_plugin(type, source, body):
 		repl = u'Если не знаешь, что подгрузить, то посмотри список плагинов (команда: плаглист)'
 	reply(type, source, repl)
 
+handler_register("00si", out_init)
 command_handler(handler_from_out_com, 100, "plugin")
 command_handler(handler_command_out, 100, "plugin")
 command_handler(handler_plug_list, 80, "plugin")
