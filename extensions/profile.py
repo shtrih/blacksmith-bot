@@ -30,13 +30,15 @@ ZASHKVARS = 'zashkvars'
 BUTTHURTS = 'butthurts'
 TOLSTO =    'tolsto'
 DVACHAYA =  'dva_chaya'
+SAGE =      'sage'
 
 gEntities = {
     LOISES:    'Лойсы',
     ZASHKVARS: 'Зашквары',
-    BUTTHURTS: 'Багиты',
+    BUTTHURTS: 'Багеты',
     TOLSTO:    'Толсто',
     DVACHAYA:  'Два чая',
+    SAGE:      'Сажи',
 }
 
 def handler_add_alias(type, source, body):
@@ -66,7 +68,8 @@ def handler_top(type, source, body):
             i += 1
             if i >= limit:
                 break
-            top_list[values['aliases'][0]] = values[entity_type]
+            if values.has_key(entity_type):
+                top_list[values['aliases'][0]] = values[entity_type]
 
         i, message = 1, ''
         for nickname, value in dict(sorted(top_list.items(), key=operator.itemgetter(1))).items():
@@ -105,6 +108,7 @@ def handler_profile(type, source, body):
     reply(type, source, message)
 
 def _add_entity(entity_type, type, source, body):
+    message = ''
     if type == 'public':
         conference = source[1]
         nickname_from = source[2]
@@ -136,14 +140,16 @@ def _add_entity(entity_type, type, source, body):
                     _save_profiles(conference)
 
                 message = 'Ок.'
-            else:
-                message = 'Пользователь «{0}» в комнате отсутствует.'.format(nickname_to)
+            # else:
+            #     message = 'Пользователь «{0}» в комнате отсутствует.'.format(nickname_to)
         else:
             message = 'Голосования за себя не учитываются.'
     else:
         message = 'Только в конференции.'
 
-    reply(type, source, message)
+    if len(message) > 0:
+        reply(type, source, message)
+
     logging.debug(gProfiles)
     logging.debug(gJids)
 

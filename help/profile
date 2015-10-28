@@ -13,7 +13,7 @@
     },
     u"handler_butthurts": {
         u"syntax": u'''багет [никнейм]''',
-        u"cmd": u'''багит''',
+        u"cmd": u'''багет''',
         u"examples": [u'''багет shtrih'''],
         u"desc": u'''Фиксация багета указанного пользователя'''
     },
@@ -24,10 +24,16 @@
         u"desc": u'''Если кто-то толстит'''
     },
     u"handler_dva_chaya": {
-        u"syntax": u'''два чая [никнейм]''',
-        u"cmd": [u'''два чая''', u'''двачая'''],
-        u"examples": [u'''два чая shtrih'''],
-        u"desc": u'''Сабж'''
+        u"syntax": u'''двачая [никнейм]''',
+        u"cmd": [u'''двачую''', u'''двачая'''],
+        u"examples": [u'''двачую shtrih'''],
+        u"desc": u'''Согласие с %username%'''
+    },
+    u"handler_sage": {
+        u"syntax": u'''сажи [никнейм]''',
+        u"cmd": [u'''сагую''', u'''сажи'''],
+        u"examples": [u'''сажи shtrih'''],
+        u"desc": u'''Сажи петушку'''
     },
     u"handler_add_alias": {
         u"syntax": u'''алиас никнейм алиас''',
