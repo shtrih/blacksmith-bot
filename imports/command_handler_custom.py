@@ -2,7 +2,7 @@
 
 # from traceback import print_exc
 # from BlackSmith import COMMANDS, COMMAND_HANDLERS, COMMSTAT, Print, read_file, color2
-import six
+
 # import logging
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
