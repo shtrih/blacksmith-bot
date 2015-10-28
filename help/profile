@@ -6,22 +6,28 @@
         u"desc": u'''Ставит лойс указанному пользователю'''
     },
     u"handler_zashkvars": {
-        u"syntax": u'''зашквор [никнейм]''',
-        u"cmd": u'''зашквор''',
-        u"examples": [u'''зашквор shtrih'''],
-        u"desc": u'''Зашквор указанному пользователю'''
+        u"syntax": u'''зашквар [никнейм]''',
+        u"cmd": u'''зашквар''',
+        u"examples": [u'''зашквар shtrih'''],
+        u"desc": u'''Зашквар указанному пользователю'''
     },
     u"handler_butthurts": {
-        u"syntax": u'''багит [никнейм]''',
+        u"syntax": u'''багет [никнейм]''',
         u"cmd": u'''багит''',
-        u"examples": [u'''багит shtrih'''],
-        u"desc": u'''Ставит багит указанному пользователю'''
+        u"examples": [u'''багет shtrih'''],
+        u"desc": u'''Фиксация багета указанного пользователя'''
     },
     u"handler_tolsto": {
         u"syntax": u'''толсто [никнейм]''',
         u"cmd": u'''толсто''',
         u"examples": [u'''толсто shtrih'''],
         u"desc": u'''Если кто-то толстит'''
+    },
+    u"handler_dva_chaya": {
+        u"syntax": u'''два чая [никнейм]''',
+        u"cmd": [u'''два чая''', u'''двачая'''],
+        u"examples": [u'''два чая shtrih'''],
+        u"desc": u'''Сабж'''
     },
     u"handler_add_alias": {
         u"syntax": u'''алиас никнейм алиас''',

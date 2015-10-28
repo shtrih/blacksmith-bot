@@ -14,6 +14,7 @@ __author__ = 'shtrih'
 топ 10
 дно 10
 """
+execfile("imports/command_handler_custom.py")
 
 import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -24,16 +25,18 @@ gAliases = {}
 gJids = {}
 gLoaded = False
 
-LOISES = 'loises'
+LOISES =    'loises'
 ZASHKVARS = 'zashkvars'
 BUTTHURTS = 'butthurts'
-TOLSTO = 'tolsto'
+TOLSTO =    'tolsto'
+DVACHAYA =  'dva_chaya'
 
 gEntities = {
     LOISES:    'Лойсы',
-    ZASHKVARS: 'Зашкворы',
+    ZASHKVARS: 'Зашквары',
     BUTTHURTS: 'Багиты',
-    TOLSTO:    'Толсто'
+    TOLSTO:    'Толсто',
+    DVACHAYA:  'Два чая',
 }
 
 def handler_add_alias(type, source, body):
@@ -101,19 +104,7 @@ def handler_profile(type, source, body):
 
     reply(type, source, message)
 
-def handler_loises(type, source, body):
-    add_entity(LOISES, type, source, body)
-
-def handler_zashkvars(type, source, body):
-    add_entity(ZASHKVARS, type, source, body)
-
-def handler_butthurts(type, source, body):
-    add_entity(BUTTHURTS, type, source, body)
-
-def handler_tolsto(type, source, body):
-    add_entity(TOLSTO, type, source, body)
-
-def add_entity(entity_type, type, source, body):
+def _add_entity(entity_type, type, source, body):
     if type == 'public':
         conference = source[1]
         nickname_from = source[2]
@@ -138,8 +129,11 @@ def add_entity(entity_type, type, source, body):
 
                     gJids[conference][nickname_to] = [jid_to]
                 else:
+                    if not gProfiles[conference][jid_to].get(entity_type):
+                        gProfiles[conference][jid_to][entity_type] = 0
+
                     gProfiles[conference][jid_to][entity_type] += 1
-                    save_profiles(conference)
+                    _save_profiles(conference)
 
                 message = 'Ок.'
             else:
@@ -168,7 +162,7 @@ def init(conference):
             Print('Не удалось прочитать список профилей.', color1)
             lytic_crashlog(read_file)
 
-def save_profiles(conference = ''):
+def _save_profiles(conference = ''):
     global gProfiles
     filename = 'dynamic/' + conference + '/profiles.txt'
     if conference == '':
@@ -179,9 +173,9 @@ def save_profiles(conference = ''):
 
 
 handler_register("01si", init)
-command_handler(handler_loises, 10, "profile")
-command_handler(handler_zashkvars, 10, "profile")
-command_handler(handler_butthurts, 10, "profile")
-command_handler(handler_tolsto, 10, "profile")
 command_handler(handler_profile, 10, "profile")
 command_handler(handler_top, 10, "profile")
+
+for entity_type in gEntities.keys():
+    exec('''def handler_{0}(type, source, body): _add_entity('{0}', type, source, body)'''.format(entity_type))
+    command_handler_custom(locals()['handler_{0}'.format(entity_type)], 10, "profile")
