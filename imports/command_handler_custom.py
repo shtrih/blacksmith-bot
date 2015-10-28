@@ -7,8 +7,8 @@ import six
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 '''
-    Делает то же самое, что стандартный command_handler, но в файле help можно прописать список команд `cmd`,
-    вместо одного элемента. Некое подобие алиасов.
+    Делает то же самое, что стандартный command_handler, но в файле help можно прописать список синонимов команды `cmd`: команда/синоним/еще_синоним.
+    Некое подобие алиасов.
 
     Как использовать:
         execfile("imports/command_handler_custom.py") # подгружаем кастомный обработчик
@@ -17,9 +17,10 @@ import six
 def command_handler_custom(instance, access = 0, plug = "default"):
     commands = []
     try:
-        commands = eval(read_file("help/%s" % plug).decode('utf-8'))[instance.func_name]["cmd"]
-        if isinstance(commands, six.string_types):
-            commands = [commands]
+        # «команда» или «команда/алиас_команды/еще_алиас» превращается в список команд
+        commands = eval(read_file("help/%s" % plug))[instance.func_name]["cmd"].encode('utf-8').split('/')
+        # чистим список от пустых элементов
+        commands = filter(bool, map(str.strip, commands))
     except:
         print_exc()
         commands.append(instance.func_name.lower())
