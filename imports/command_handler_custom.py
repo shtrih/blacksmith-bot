@@ -23,7 +23,7 @@ def command_handler_custom(instance, access = 0, plug = "default"):
     except:
         print_exc()
         commands.append(instance.func_name.lower())
-        Print("\nPlugin \"%s\" has no help and command name. New command name: %s." % (plug, command), color2)
+        Print("\nPlugin \"%s\" has no help and command name. New command name: %s." % (plug, commands[-1]), color2)
 
     for command in commands:
         # logging.debug(command)
