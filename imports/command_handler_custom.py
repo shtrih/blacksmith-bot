@@ -18,9 +18,9 @@ def command_handler_custom(instance, access = 0, plug = "default"):
     commands = []
     try:
         # «команда» или «команда/алиас_команды/еще_алиас» превращается в список команд
-        commands = eval(read_file("help/%s" % plug))[instance.func_name]["cmd"].encode('utf-8').split('/')
+        commands = eval(read_file("help/%s" % plug).decode('utf-8'))[instance.func_name]["cmd"].split('/')
         # чистим список от пустых элементов
-        commands = filter(bool, map(str.strip, commands))
+        commands = filter(bool, map(unicode.strip, commands))
     except:
         print_exc()
         commands.append(instance.func_name.lower())
