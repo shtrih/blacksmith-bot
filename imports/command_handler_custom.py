@@ -6,15 +6,15 @@
 # import logging
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-'''
-    Делает то же самое, что стандартный command_handler, но в файле help можно прописать список синонимов команды `cmd`: команда/синоним/еще_синоним.
-    Некое подобие алиасов.
-
-    Как использовать:
-        execfile("imports/command_handler_custom.py") # подгружаем кастомный обработчик
-        command_handler_custom(handler_vanguy, 10, "vanguy") # вместо command_handler, вызываем наш обработчик
-'''
 def command_handler_custom(instance, access = 0, plug = "default"):
+    """
+        Делает то же самое, что стандартный command_handler, но в файле help можно прописать список синонимов команды `cmd`: команда/синоним/еще_синоним.
+        Некое подобие алиасов.
+
+        Как использовать:
+            execfile("imports/command_handler_custom.py") # подгружаем кастомный обработчик
+            command_handler_custom(handler_vanguy, 10, "vanguy") # вместо command_handler, вызываем наш обработчик
+    """
     commands = []
     try:
         # «команда» или «команда/алиас_команды/еще_алиас» превращается в список команд
