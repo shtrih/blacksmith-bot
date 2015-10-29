@@ -108,6 +108,8 @@ def _add_user(type, source, body):
             message = 'Пользователь с таким JID уже зарегистрирован'
         elif _get_main_nickname(nickname_to, conference) is not None:
             message = 'Пользователь с таким никнеймом уже зарегистрирован'
+        elif conference == jid_to:
+            message = 'Не вижу этого юзера'
         else:
             gUsers[conference][nickname_to] = jid_to
             gProfiles[conference][jid_to] = {}
