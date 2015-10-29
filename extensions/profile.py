@@ -48,6 +48,8 @@ def handler_add_jid(type, source, body):
     pass
 
 def handler_top(type, source, body):
+    global gProfiles, gEntities
+
     if type == 'public':
         conference = source[1]
 
@@ -81,6 +83,8 @@ def handler_top(type, source, body):
     reply(type, source, message)
 
 def handler_profile(type, source, body):
+    global gProfiles, gEntities
+
     if type == 'public':
         conference = source[1]
         nickname_from = source[2]
@@ -108,6 +112,8 @@ def handler_profile(type, source, body):
     reply(type, source, message)
 
 def _add_entity(entity_type, type, source, body):
+    global gProfiles, gJids, gEntities, GROUPCHATS
+
     message = ''
     if type == 'public':
         conference = source[1]
@@ -154,7 +160,7 @@ def _add_entity(entity_type, type, source, body):
     logging.debug(gJids)
 
 def init(conference):
-    global gProfiles, gLoaded
+    global gProfiles, gLoaded, gJids
 
     file = 'dynamic/' + conference + '/profiles.txt'
     gLoaded = True
@@ -169,13 +175,13 @@ def init(conference):
             lytic_crashlog(read_file)
 
 def _save_profiles(conference = ''):
-    global gProfiles
-    filename = 'dynamic/' + conference + '/profiles.txt'
+    global gProfiles, gJids
+
     if conference == '':
         for conference in gProfiles:
-            write_file(filename, str({'gProfiles': gProfiles[conference], 'gJids': gJids[conference]}))
+            write_file('dynamic/' + conference + '/profiles.txt', str({'gProfiles': gProfiles[conference], 'gJids': gJids[conference]}))
     else:
-        write_file(filename, str({'gProfiles': gProfiles[conference], 'gJids': gJids[conference]}))
+        write_file('dynamic/' + conference + '/profiles.txt', str({'gProfiles': gProfiles[conference], 'gJids': gJids[conference]}))
 
 
 handler_register("01si", init)
