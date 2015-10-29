@@ -260,20 +260,25 @@ def _add_entity(entity_type, type, source, body):
         jid_main_to = _get_main_jid(jid_to, conference)
 
         if nickname_main_to is not None or jid_main_to is not None:
-            if nickname_to != nickname_from and nickname_main_to != _get_main_nickname(nickname_from, conference):
+            # проверка, что голосующий не голосует за свой алиас
+            nickname_main_from = _get_main_nickname(nickname_from, conference)
+            jid_main_from = _get_main_jid_by_nickname(nickname_from, conference)
+            logging.debug(nickname_main_from)
+            logging.debug(jid_main_from)
+            if nickname_main_from is not None and nickname_main_from != nickname_main_to \
+                    and jid_main_to is not None and jid_main_to != jid_main_from \
+                    or nickname_main_from is None and jid_main_from is None:
                 if nickname_to in GROUPCHATS[conference] or nickname_main_to in GROUPCHATS[conference]:
-                    if not gProfiles[conference].has_key(jid_to):
-                        gProfiles[conference][jid_to] = {'jids': [jid_to], 'aliases': [nickname_to], entity_type: 1}
+                    if not gProfiles[conference].has_key(jid_main_to):
+                        gProfiles[conference][jid_main_to] = {entity_type: 1}
                         for ent_t in gEntities.keys():
                             if entity_type != ent_t:
-                                gProfiles[conference][jid_to][ent_t] = 0
-
-                        gJids[conference][nickname_to] = [jid_to]
+                                gProfiles[conference][jid_main_to][ent_t] = 0
                     else:
-                        if not gProfiles[conference][jid_to].get(entity_type):
-                            gProfiles[conference][jid_to][entity_type] = 0
+                        if not gProfiles[conference][jid_main_to].get(entity_type):
+                            gProfiles[conference][jid_main_to][entity_type] = 0
 
-                        gProfiles[conference][jid_to][entity_type] += 1
+                        gProfiles[conference][jid_main_to][entity_type] += 1
                         _save_profiles(conference)
 
                     message = 'Ok'
@@ -288,9 +293,6 @@ def _add_entity(entity_type, type, source, body):
 
     if len(message) > 0:
         reply(type, source, message)
-
-    logging.debug(gProfiles)
-    logging.debug(gJids)
 
 def init(conference):
     global gProfiles, gLoaded, gJids, gAliases, gUsers
