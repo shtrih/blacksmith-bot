@@ -19,9 +19,16 @@ execfile("imports/command_handler_custom.py")
 import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# {'conf@cjr': {''}}
+# {'foo@conference.j.ru': {'main_jid': {entities, …}}}
 gProfiles = {}
+
+# {'foo@conference.j.ru': {'main_nickname': 'main_jid', …}}
+gUsers = {}
+
+# {'foo@conference.j.ru': {main_nickname: ['alias1', 'alias2', …]}}
 gAliases = {}
+
+# {'foo@conference.j.ru': {main_jid: ['jid1', 'jid2', …]}}
 gJids = {}
 gLoaded = False
 
@@ -41,14 +48,83 @@ gEntities = {
     SAGE:      'Сажи',
 }
 
-def handler_add_alias(type, source, body):
+def handler_add_router(type, source, body):
+    arguments = filter(bool, map(unicode.strip, body.split(' ')))
+    command = arguments.pop(0)
+    if re.match(ur'(юзер[а-я]?|профиль)', command, re.I | re.U):
+        for arg in arguments:
+            _add_user(type, source, arg)
+
+    elif re.match(ur'(алиас|имя|ник(|нейм))', command, re.I | re.U):
+        _add_alias(type, source, arguments)
+
+    elif re.match(ur'(д?жид|jid)', command, re.I | re.U):
+        _add_jid(type, source, arguments)
+
+def _add_alias(type, source, arguments):
+    global gAliases
+
+    if len(arguments) >= 2:
+        conference = source[1]
+        nickname_to = arguments[0]
+        alias = arguments[1]
+
+        main_nickname = _get_main_nickname(nickname_to, conference)
+        if gAliases.has_key(conference) and main_nickname is not None:
+            if alias not in gAliases[conference][main_nickname]:
+                gAliases[conference][main_nickname].append(alias)
+                _save_profiles(conference)
+            message = 'Ok'
+        else:
+            message = 'Не зарегистрирован'
+    else:
+        message = 'Нехватает аргументов.'
+
+    reply(type, source, message)
+
+def _add_jid(type, source, arguments):
     pass
 
-def handler_add_jid(type, source, body):
-    pass
+def _add_user(type, source, body):
+    global gProfiles, gEntities, gUsers
+
+    message = ''
+    if type == 'public':
+        conference = source[1]
+        nickname_to = body
+
+        if not gLoaded:
+            init(conference)
+
+        if len(nickname_to.strip()) == 0:
+            message = 'Забыл указать ник нового юзера'
+            reply(type, source, message)
+            return
+        else:
+            jid_to = handler_jid(conference + '/' + nickname_to)
+
+        logging.debug(jid_to)
+        if _get_main_jid(jid_to, conference) is not None:
+            message = 'Пользователь с таким JID уже зарегистрирован'
+        elif _get_main_nickname(nickname_to, conference) is not None:
+            message = 'Пользователь с таким никнеймом уже зарегистрирован'
+        else:
+            gUsers[conference][nickname_to] = jid_to
+            gProfiles[conference][jid_to] = {}
+            for entity_type in gEntities.keys():
+                gProfiles[conference][jid_to][entity_type] = 0
+
+            gJids[conference][jid_to] = [jid_to] # ?
+            gAliases[conference][nickname_to] = [nickname_to] # ?
+            _save_profiles(conference)
+            message = 'Ok'
+    else:
+        message = 'Только в конференции.'
+
+    reply(type, source, message)
 
 def handler_top(type, source, body):
-    global gProfiles, gEntities
+    global gProfiles, gEntities, LOISES
 
     if type == 'public':
         conference = source[1]
@@ -93,23 +169,76 @@ def handler_profile(type, source, body):
         if not gLoaded:
             init(conference)
 
-        if len(nickname_to) == 0:
-            jid_to = handler_jid(conference + '/' + nickname_from)
+        if len(nickname_to.strip()) == 0:
+            jid_main_to = _get_main_jid_by_nickname(nickname_from, conference)
         else:
-            jid_to = handler_jid(conference + '/' + nickname_to)
+            jid_main_to = _get_main_jid_by_nickname(nickname_to, conference)
 
+        logging.debug(nickname_to)
+        logging.debug(len(nickname_to.strip()) == 0)
+        logging.debug(jid_main_to)
         message = ''
-        for k, v in gEntities.items():
-            if not gProfiles.has_key(conference) or not gProfiles[conference].has_key(jid_to) or not gProfiles[conference][jid_to].has_key(k):
-                value = 0
-            else:
-                value = gProfiles[conference][jid_to][k]
-            message += v + ': %d, ' % value
-        message = message[:-2] # отрезаем запятую с пробелом в конце
+        if jid_main_to is None or not gProfiles.has_key(conference) or not gProfiles[conference].has_key(jid_main_to):
+            message = 'Не зарегистрирован.'
+        else:
+            for k, v in gEntities.items():
+                if not gProfiles[conference][jid_main_to].has_key(k):
+                    value = 0
+                else:
+                    value = gProfiles[conference][jid_main_to][k]
+                message += v + ': %d, ' % value
+            message = message[:-2] # отрезаем запятую с пробелом в конце
     else:
         message = 'Только в конференции.'
 
     reply(type, source, message)
+
+def _get_main_nickname(nickname, conference):
+    """
+    Найти и вернуть главный никнейм по никнейму или алиасу.
+    """
+    global gAliases, gUsers
+
+    result = None
+    if gUsers.has_key(conference) and nickname in gUsers[conference].keys():
+        result = nickname
+
+    if result is None and gAliases.has_key(conference):
+        for main_nickname, aliases_list in gAliases[conference].items():
+            if nickname in aliases_list:
+                result = main_nickname
+
+    return result
+
+def _get_main_jid(jid, conference):
+    """
+    Найти и вернуть главный JID по никнейму или алиасу.
+    """
+    global gJids, gUsers
+
+    result = None
+    if gUsers.has_key(conference) and jid in gUsers[conference].values():
+        result = jid
+
+    if result is None and gJids.has_key(conference):
+        for main_jid, jid_list in gJids[conference].items():
+            if jid in jid_list:
+                result = main_jid
+
+    return result
+
+def _get_main_jid_by_nickname(nickname, conference):
+    """
+    Найти и вернуть главный JID по никнейму или алиасу.
+    """
+    global gJids, gUsers
+
+    result = None
+    nickname = _get_main_nickname(nickname, conference)
+    if gUsers.has_key(conference) and nickname in gUsers[conference].keys():
+        result = gUsers[conference][nickname]
+
+    return result
 
 def _add_entity(entity_type, type, source, body):
     global gProfiles, gJids, gEntities, GROUPCHATS
@@ -119,7 +248,12 @@ def _add_entity(entity_type, type, source, body):
         conference = source[1]
         nickname_from = source[2]
         nickname_to = body
-        jid_to = handler_jid(conference + '/' + nickname_to)
+        nickname_main_to = _get_main_nickname(nickname_to, conference)
+        if nickname_main_to is not None:
+            jid_to = handler_jid(conference + '/' + nickname_main_to)
+        else:
+            jid_to = handler_jid(conference + '/' + nickname_to)
+        jid_main_to = _get_main_jid(jid_to, conference)
 
         if not gLoaded:
             init(conference)
@@ -128,10 +262,9 @@ def _add_entity(entity_type, type, source, body):
             gProfiles[conference] = {}
             gJids[conference] = {}
 
-        if nickname_to != nickname_from:
-
-            if nickname_to in GROUPCHATS[conference]:
-                if not gProfiles[conference].has_key(jid_to) or nickname_to not in gProfiles[conference][jid_to].get('aliases'):
+        if nickname_to != nickname_from and nickname_main_to != _get_main_nickname(nickname_from, conference):
+            if nickname_to in GROUPCHATS[conference] or nickname_main_to in GROUPCHATS[conference]:
+                if not gProfiles[conference].has_key(jid_to):
                     gProfiles[conference][jid_to] = {'jids': [jid_to], 'aliases': [nickname_to], entity_type: 1}
                     for ent_t in gEntities.keys():
                         if entity_type != ent_t:
@@ -145,7 +278,7 @@ def _add_entity(entity_type, type, source, body):
                     gProfiles[conference][jid_to][entity_type] += 1
                     _save_profiles(conference)
 
-                message = 'Ок.'
+                message = 'Ok'
             # else:
             #     message = 'Пользователь «{0}» в комнате отсутствует.'.format(nickname_to)
         else:
@@ -160,33 +293,52 @@ def _add_entity(entity_type, type, source, body):
     logging.debug(gJids)
 
 def init(conference):
-    global gProfiles, gLoaded, gJids
+    global gProfiles, gLoaded, gJids, gAliases, gUsers
 
     file = 'dynamic/' + conference + '/profiles.txt'
-    gLoaded = True
     if initialize_file(file):
         try:
             fcontent = eval(read_file(file))
-            gProfiles[conference] = fcontent.get('gProfiles')
-            gJids[conference] = fcontent.get('gJids')
+            gProfiles[conference] = fcontent.get('gProfiles', {})
+            gJids[conference] = fcontent.get('gJids', {})
+            gUsers[conference] = fcontent.get('gUsers', {})
+            gAliases[conference] = fcontent.get('gAliases', {})
+            gLoaded = True
             logging.debug('init')
         except:
             Print('Не удалось прочитать список профилей.', color1)
             lytic_crashlog(read_file)
+    else:
+        Print("\n\nError: невозможно подгрузить файл " + file, color2)
 
 def _save_profiles(conference = ''):
-    global gProfiles, gJids
+    global gProfiles, gJids, gUsers, gAliases
 
     if conference == '':
-        for conference in gProfiles:
-            write_file('dynamic/' + conference + '/profiles.txt', str({'gProfiles': gProfiles[conference], 'gJids': gJids[conference]}))
+        for conference in gProfiles.keys():
+            write_file('dynamic/' + conference + '/profiles.txt', str(
+                {
+                    'gProfiles': gProfiles[conference],
+                    'gJids':     gJids[conference],
+                    'gUsers':    gUsers[conference],
+                    'gAliases':  gAliases[conference]
+                 }
+            ))
     else:
-        write_file('dynamic/' + conference + '/profiles.txt', str({'gProfiles': gProfiles[conference], 'gJids': gJids[conference]}))
+        write_file('dynamic/' + conference + '/profiles.txt', str(
+            {
+                'gProfiles': gProfiles[conference],
+                'gJids':     gJids[conference],
+                'gUsers':    gUsers[conference],
+                'gAliases':  gAliases[conference]
+             }
+        ))
 
 
 handler_register("01si", init)
 command_handler(handler_profile, 10, "profile")
 command_handler(handler_top, 10, "profile")
+command_handler(handler_add_router, 20, "profile")
 
 for entity_type in gEntities.keys():
     exec('''def handler_{0}(type, source, body): _add_entity('{0}', type, source, body)'''.format(entity_type))
