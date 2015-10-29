@@ -248,6 +248,10 @@ def _add_entity(entity_type, type, source, body):
         conference = source[1]
         nickname_from = source[2]
         nickname_to = body
+
+        if not gLoaded:
+            init(conference)
+
         nickname_main_to = _get_main_nickname(nickname_to, conference)
         if nickname_main_to is not None:
             jid_to = handler_jid(conference + '/' + nickname_main_to)
@@ -255,34 +259,30 @@ def _add_entity(entity_type, type, source, body):
             jid_to = handler_jid(conference + '/' + nickname_to)
         jid_main_to = _get_main_jid(jid_to, conference)
 
-        if not gLoaded:
-            init(conference)
+        if nickname_main_to is not None or jid_main_to is not None:
+            if nickname_to != nickname_from and nickname_main_to != _get_main_nickname(nickname_from, conference):
+                if nickname_to in GROUPCHATS[conference] or nickname_main_to in GROUPCHATS[conference]:
+                    if not gProfiles[conference].has_key(jid_to):
+                        gProfiles[conference][jid_to] = {'jids': [jid_to], 'aliases': [nickname_to], entity_type: 1}
+                        for ent_t in gEntities.keys():
+                            if entity_type != ent_t:
+                                gProfiles[conference][jid_to][ent_t] = 0
 
-        if not gProfiles.has_key(conference):
-            gProfiles[conference] = {}
-            gJids[conference] = {}
+                        gJids[conference][nickname_to] = [jid_to]
+                    else:
+                        if not gProfiles[conference][jid_to].get(entity_type):
+                            gProfiles[conference][jid_to][entity_type] = 0
 
-        if nickname_to != nickname_from and nickname_main_to != _get_main_nickname(nickname_from, conference):
-            if nickname_to in GROUPCHATS[conference] or nickname_main_to in GROUPCHATS[conference]:
-                if not gProfiles[conference].has_key(jid_to):
-                    gProfiles[conference][jid_to] = {'jids': [jid_to], 'aliases': [nickname_to], entity_type: 1}
-                    for ent_t in gEntities.keys():
-                        if entity_type != ent_t:
-                            gProfiles[conference][jid_to][ent_t] = 0
+                        gProfiles[conference][jid_to][entity_type] += 1
+                        _save_profiles(conference)
 
-                    gJids[conference][nickname_to] = [jid_to]
-                else:
-                    if not gProfiles[conference][jid_to].get(entity_type):
-                        gProfiles[conference][jid_to][entity_type] = 0
-
-                    gProfiles[conference][jid_to][entity_type] += 1
-                    _save_profiles(conference)
-
-                message = 'Ok'
-            # else:
-            #     message = 'Пользователь «{0}» в комнате отсутствует.'.format(nickname_to)
+                    message = 'Ok'
+                # else:
+                #     message = 'Пользователь «{0}» в комнате отсутствует.'.format(nickname_to)
+            else:
+                message = 'Голосования за себя не учитываются.'
         else:
-            message = 'Голосования за себя не учитываются.'
+            message = 'Не зарегистрирован'
     else:
         message = 'Только в конференции.'
 
