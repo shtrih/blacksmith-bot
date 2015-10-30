@@ -59,7 +59,16 @@ def command_comlist(mType, source, body):
 		access = COMMANDS[command]["access"]
 		if access not in commandByAccess.keys():
 			commandByAccess[access] = []
-		commandByAccess[access].append(command)
+
+		# В common_handler_custom в переменную COMMANDS[command] добавляется alias
+		# идея в том, чтобы алиасы отображать не как самостоятельные команды, а как вариации одной команды
+		# Например, «хелп/помощь, …», вместо «хелп, игра, …, помощь, …»
+		if COMMANDS[command].has_key('aliases'):
+			aliases = COMMANDS[command]['aliases']
+			if aliases not in commandByAccess[access]:
+				commandByAccess[access].append(aliases)
+		else:
+			commandByAccess[access].append(command)
 	for access in sorted(commandByAccess.keys()):
 		answer += "\n## Команды для пользователей с доступом %d (%s):\n" % (access, Access.get(access, "Unknown"))
 		answer += str.join(", ", sorted(commandByAccess[access])) + "\n"

@@ -35,4 +35,4 @@ def command_handler_custom(instance, access = 0, plug = "default"):
         if command not in COMMSTAT:
             COMMSTAT[command] = {'col': 0, 'users': []}
         COMMAND_HANDLERS[command] = instance
-        COMMANDS[command] = {'plug': plug, 'access': access}
+        COMMANDS[command] = {'plug': plug, 'access': access, 'aliases': '/'.join(commands)}
