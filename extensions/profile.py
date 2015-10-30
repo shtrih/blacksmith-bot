@@ -17,7 +17,6 @@ __author__ = 'shtrih'
 execfile("imports/command_handler_custom.py")
 
 import logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # {'foo@conference.j.ru': {'main_jid': {entities, …}}}
 gProfiles = {}
@@ -49,8 +48,12 @@ gEntities = {
 }
 
 def handler_add_router(type, source, body):
-    arguments = filter(bool, map(unicode.strip, body.split(' ')))
+    # можно передать ник юзера, заэкранировав пробел бекслешем.
+    arguments = filter(bool, map(unicode.strip, re.split(r'(?<!\\)\s', body, flags = re.I | re.U)))
+    # Удаляем экранирование слешем. Если ник юзера по какой-то причине содержал «\ », то ник юзера испортится. Просто не думай об этом.
+    arguments = map(lambda string: string.replace('\ ', ' '), arguments)
     command = arguments.pop(0)
+
     if re.match(ur'(юзер[а-я]?|профиль)', command, re.I | re.U):
         for arg in arguments:
             _add_user(type, source, arg)
@@ -85,39 +88,39 @@ def _add_alias(type, source, arguments):
 def _add_jid(type, source, arguments):
     pass
 
-def _add_user(type, source, body):
+def _add_user(type, source, nickname):
     global gProfiles, gEntities, gUsers
 
     message = ''
     if type == 'public':
         conference = source[1]
-        nickname_to = body
 
         if not gLoaded:
             init(conference)
 
-        if len(nickname_to.strip()) == 0:
+        if len(nickname.strip()) == 0:
             message = 'Забыл указать ник нового юзера'
             reply(type, source, message)
             return
         else:
-            jid_to = handler_jid(conference + '/' + nickname_to)
+            jid_to = handler_jid(conference + '/' + nickname)
 
+        logging.debug(conference + '/' + nickname)
         logging.debug(jid_to)
         if _get_main_jid(jid_to, conference) is not None:
             message = 'Пользователь с таким JID уже зарегистрирован'
-        elif _get_main_nickname(nickname_to, conference) is not None:
+        elif _get_main_nickname(nickname, conference) is not None:
             message = 'Пользователь с таким никнеймом уже зарегистрирован'
         elif conference == jid_to:
             message = 'Не вижу этого юзера'
         else:
-            gUsers[conference][nickname_to] = jid_to
+            gUsers[conference][nickname] = jid_to
             gProfiles[conference][jid_to] = {}
             for entity_type in gEntities.keys():
                 gProfiles[conference][jid_to][entity_type] = 0
 
             gJids[conference][jid_to] = [jid_to] # ?
-            gAliases[conference][nickname_to] = [nickname_to] # ?
+            gAliases[conference][nickname] = [nickname] # ?
             _save_profiles(conference)
             message = 'Ok'
     else:
@@ -342,7 +345,7 @@ def _save_profiles(conference = ''):
 handler_register("01si", init)
 command_handler(handler_profile, 10, "profile")
 command_handler(handler_top, 10, "profile")
-command_handler(handler_add_router, 20, "profile")
+command_handler(handler_add_router, 15, "profile")
 
 for entity_type in gEntities.keys():
     exec('''def handler_{0}(type, source, body): _add_entity('{0}', type, source, body)'''.format(entity_type))

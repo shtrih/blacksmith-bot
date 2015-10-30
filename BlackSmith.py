@@ -19,6 +19,8 @@
 ## Imports.
 from traceback import format_exc, print_exc
 import gc, os, re, sys, time, random, threading
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(module)s:%(lineno)d, %(funcName)s - %(message)s')
 
 ## Local dir.
 core = getattr(sys.modules["__main__"], "__file__", None)
@@ -594,7 +596,8 @@ def user_level(source, conf):
 		level = ACCBYCONF[conf][jid]
 	return level
 
-has_access = lambda source, level, chat: user_level(source, chat) >= int(level)
+def has_access(source, level, chat):
+	return user_level(source, chat) >= int(level)
 
 ## MUC & Roster handlers.
 def send_join_presece(conf, nick, code = None):
