@@ -47,22 +47,58 @@ gEntities = {
     SAGE:      'Сажи',
 }
 
-def handler_add_router(type, source, body):
-    # можно передать ник юзера, заэкранировав пробел бекслешем.
-    arguments = filter(bool, map(unicode.strip, re.split(r'(?<!\\)\s', body, flags = re.I | re.U)))
-    # Удаляем экранирование слешем. Если ник юзера по какой-то причине содержал «\ », то ник юзера испортится. Просто не думай об этом.
-    arguments = map(lambda string: string.replace('\ ', ' '), arguments)
-    command = arguments.pop(0)
+def _parse_router_params(string):
+    """
+        Парсит переданную строку как «команда аргумент1 аргумент2 составной\ аргумент3»
+        и возвращает словарь {'command': '', 'arguments': […]}
 
-    if re.match(ur'(юзер[а-я]?|профиль)', command, re.I | re.U):
-        for arg in arguments:
+        :rtype : dict
+    """
+    result = {
+        'arguments': filter(bool, map(unicode.strip, re.split(ur'(?<!\\)\s', string, flags=re.I | re.U)))
+    }
+    # обработка экранирования пробелов бекслешем
+    # Удаляем экранирование слешем. Возможно получение неверного результата, если строка содержала «\ » не для того, чтобы заэкранировать пробел.
+    result['arguments'] = map(lambda string: string.replace('\ ', ' '), result['arguments'])
+    if result['arguments'].__len__() > 0:
+        result['command'] = result['arguments'].pop(0)
+
+    return result
+
+def handler_show_router(type, source, body):
+    """
+        Обработчик команды «покажи».
+    """
+    global gAliases
+
+    params = _parse_router_params(body)
+    conference = source[1]
+
+    if re.match(ur'(ники|алиасы)', params['command'], re.I | re.U):
+        if params['arguments'].__len__() > 0:
+            nickname = params['arguments'].pop(0)
+            nickname_main = _get_main_nickname(nickname, conference)
+            logging.debug(nickname)
+            logging.debug(nickname_main)
+            if nickname_main is not None:
+                reply(type, source, ', '.join(gAliases[conference][nickname_main]))
+
+def handler_add_router(type, source, body):
+    """
+        Обработчик команды «добавь». Добавь профиль, добавь алиас, добавь жид
+    """
+    # можно передать ник юзера, заэкранировав пробел бекслешем.
+    params = _parse_router_params(body)
+
+    if re.match(ur'(юзер[а-я]?|профиль)', params['command'], re.I | re.U):
+        for arg in params['arguments']:
             _add_user(type, source, arg)
 
-    elif re.match(ur'(алиас|имя|ник(|нейм))', command, re.I | re.U):
-        _add_alias(type, source, arguments)
+    elif re.match(ur'(алиас|имя|ник(|нейм))', params['command'], re.I | re.U):
+        _add_alias(type, source, params['arguments'])
 
-    elif re.match(ur'(д?жид|jid)', command, re.I | re.U):
-        _add_jid(type, source, arguments)
+    elif re.match(ur'(д?жид|jid)', params['command'], re.I | re.U):
+        _add_jid(type, source, params['arguments'])
 
 def _add_alias(type, source, arguments):
     global gAliases
@@ -346,6 +382,7 @@ handler_register("01si", init)
 command_handler(handler_profile, 10, "profile")
 command_handler(handler_top, 10, "profile")
 command_handler(handler_add_router, 15, "profile")
+command_handler(handler_show_router, 10, "profile")
 
 for entity_type in gEntities.keys():
     exec('''def handler_{0}(type, source, body): _add_entity('{0}', type, source, body)'''.format(entity_type))

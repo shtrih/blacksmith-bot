@@ -20,7 +20,7 @@
 from traceback import format_exc, print_exc
 import gc, os, re, sys, time, random, threading
 import logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(module)s:%(lineno)d, %(funcName)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(module)s:%(lineno)d, %(funcName)s(…) - %(message)s')
 
 ## Local dir.
 core = getattr(sys.modules["__main__"], "__file__", None)
