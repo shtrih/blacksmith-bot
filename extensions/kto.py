@@ -29,7 +29,7 @@ def handler_kto(type, source, body):
         "Очевидно, что %(action)s %(nick)s, другого не дано.",
         "Всем уже давно известно, что %(nick)s %(action)s.",
         "Правда в том, что %(nick)s %(action)s.",
-        "%(nick)s %(action)s ошибки быть не может.",
+        "%(nick)s %(action)s, ошибки быть не может.",
         "Ты будешь удивлен, но именно %(nick)s %(action)s.",
         "Звёзды говорят, что %(action)s %(nick)s.",
         "Вы же сами понимаете, что %(action)s %(nick)s.",

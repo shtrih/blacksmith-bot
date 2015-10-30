@@ -128,39 +128,40 @@ def _add_user(type, source, nickname):
     global gProfiles, gEntities, gUsers
 
     message = ''
-    if type == 'public':
-        conference = source[1]
+    # if type == 'public':
+    conference = source[1]
 
-        if not gLoaded:
-            init(conference)
+    if not gLoaded:
+        init(conference)
 
-        if len(nickname.strip()) == 0:
-            message = 'Забыл указать ник нового юзера'
-            reply(type, source, message)
-            return
-        else:
-            jid_to = handler_jid(conference + '/' + nickname)
-
-        logging.debug(conference + '/' + nickname)
-        logging.debug(jid_to)
-        if _get_main_jid(jid_to, conference) is not None:
-            message = 'Пользователь с таким JID уже зарегистрирован'
-        elif _get_main_nickname(nickname, conference) is not None:
-            message = 'Пользователь с таким никнеймом уже зарегистрирован'
-        elif conference == jid_to:
-            message = 'Не вижу этого юзера'
-        else:
-            gUsers[conference][nickname] = jid_to
-            gProfiles[conference][jid_to] = {}
-            for entity_type in gEntities.keys():
-                gProfiles[conference][jid_to][entity_type] = 0
-
-            gJids[conference][jid_to] = [jid_to] # ?
-            gAliases[conference][nickname] = [nickname] # ?
-            _save_profiles(conference)
-            message = 'Ok'
+    if len(nickname.strip()) == 0:
+        message = 'Забыл указать ник нового юзера'
+        reply(type, source, message)
+        return
     else:
-        message = 'Только в конференции.'
+        jid_to = handler_jid(conference + '/' + nickname)
+
+    logging.debug(conference + '/' + nickname)
+    logging.debug(jid_to)
+    logging.debug(GROUPCHATS[conference])
+    if _get_main_jid(jid_to, conference) is not None:
+        message = 'Пользователь с таким JID уже зарегистрирован'
+    elif _get_main_nickname(nickname, conference) is not None:
+        message = 'Пользователь с таким никнеймом уже зарегистрирован'
+    elif conference == jid_to:
+        message = 'Не вижу этого юзера'
+    else:
+        gUsers[conference][nickname] = jid_to
+        gProfiles[conference][jid_to] = {}
+        for entity_type in gEntities.keys():
+            gProfiles[conference][jid_to][entity_type] = 0
+
+        gJids[conference][jid_to] = [jid_to] # ?
+        gAliases[conference][nickname] = [nickname] # ?
+        _save_profiles(conference)
+        message = 'Ok'
+    # else:
+    #     message = 'Только в конференции.'
 
     reply(type, source, message)
 
@@ -202,35 +203,35 @@ def handler_top(type, source, body):
 def handler_profile(type, source, body):
     global gProfiles, gEntities
 
-    if type == 'public':
-        conference = source[1]
-        nickname_from = source[2]
-        nickname_to = body
+    # if type == 'public':
+    conference = source[1]
+    nickname_from = source[2]
+    nickname_to = body
 
-        if not gLoaded:
-            init(conference)
+    if not gLoaded:
+        init(conference)
 
-        if len(nickname_to.strip()) == 0:
-            jid_main_to = _get_main_jid_by_nickname(nickname_from, conference)
-        else:
-            jid_main_to = _get_main_jid_by_nickname(nickname_to, conference)
-
-        logging.debug(nickname_to)
-        logging.debug(len(nickname_to.strip()) == 0)
-        logging.debug(jid_main_to)
-        message = ''
-        if jid_main_to is None or not gProfiles.has_key(conference) or not gProfiles[conference].has_key(jid_main_to):
-            message = 'Не зарегистрирован.'
-        else:
-            for k, v in gEntities.items():
-                if not gProfiles[conference][jid_main_to].has_key(k):
-                    value = 0
-                else:
-                    value = gProfiles[conference][jid_main_to][k]
-                message += v + ': %d, ' % value
-            message = message[:-2] # отрезаем запятую с пробелом в конце
+    if len(nickname_to.strip()) == 0:
+        jid_main_to = _get_main_jid_by_nickname(nickname_from, conference)
     else:
-        message = 'Только в конференции.'
+        jid_main_to = _get_main_jid_by_nickname(nickname_to, conference)
+
+    logging.debug(nickname_to)
+    logging.debug(len(nickname_to.strip()) == 0)
+    logging.debug(jid_main_to)
+    message = ''
+    if jid_main_to is None or not gProfiles.has_key(conference) or not gProfiles[conference].has_key(jid_main_to):
+        message = 'Не зарегистрирован.'
+    else:
+        for k, v in gEntities.items():
+            if not gProfiles[conference][jid_main_to].has_key(k):
+                value = 0
+            else:
+                value = gProfiles[conference][jid_main_to][k]
+            message += v + ': %d, ' % value
+        message = message[:-2] # отрезаем запятую с пробелом в конце
+    # else:
+    #     message = 'Только в конференции.'
 
     reply(type, source, message)
 
@@ -327,7 +328,8 @@ def _add_entity(entity_type, type, source, body):
                 #     message = 'Пользователь «{0}» в комнате отсутствует.'.format(nickname_to)
             else:
                 message = 'Голосования за себя не учитываются.'
-        else:
+        # если нет ника или если юзера нет в комнате, молчим
+        elif len(nickname_to.strip()) > 0 and jid_to != conference:
             message = 'Не зарегистрирован'
     else:
         message = 'Только в конференции.'
