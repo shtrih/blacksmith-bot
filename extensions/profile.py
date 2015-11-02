@@ -184,7 +184,7 @@ def handler_top(type, source, body):
         init(conference)
 
     i, top_list = 0, {}
-    for jid, values in gProfiles[conference].items():
+    for jid, values in gProfiles[conference].iteritems():
         i += 1
         if i >= limit:
             break
@@ -223,7 +223,7 @@ def handler_profile(type, source, body):
     if jid_main_to is None or not gProfiles.has_key(conference) or not gProfiles[conference].has_key(jid_main_to):
         message = 'Не зарегистрирован.'
     else:
-        for k, v in gEntities.items():
+        for k, v in gEntities.iteritems():
             if not gProfiles[conference][jid_main_to].has_key(k):
                 value = 0
             else:
@@ -246,7 +246,7 @@ def _get_main_nickname(nickname, conference):
         result = nickname
 
     if result is None and gAliases.has_key(conference):
-        for main_nickname, aliases_list in gAliases[conference].items():
+        for main_nickname, aliases_list in gAliases[conference].iteritems():
             if nickname in aliases_list:
                 result = main_nickname
 
@@ -263,7 +263,7 @@ def _get_main_jid(jid, conference):
         result = jid
 
     if result is None and gJids.has_key(conference):
-        for main_jid, jid_list in gJids[conference].items():
+        for main_jid, jid_list in gJids[conference].iteritems():
             if jid in jid_list:
                 result = main_jid
 
@@ -290,7 +290,7 @@ def _get_main_nickname_by_jid(jid, conference):
 
     result = None
     jid = _get_main_jid(jid, conference)
-    for _nickname, _jid in gUsers[conference].items():
+    for _nickname, _jid in gUsers[conference].iteritems():
         if _jid == jid:
             result = _nickname
             break
