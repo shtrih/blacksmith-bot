@@ -166,37 +166,37 @@ def _add_user(type, source, nickname):
     reply(type, source, message)
 
 def handler_top(type, source, body):
-    global gProfiles, gEntities, LOISES
+    global gProfiles, gEntities, LOISES, gAliases
 
-    if type == 'public':
-        conference = source[1]
+    # if type == 'public':
+    conference = source[1]
 
-        limit, entity_type = 10, LOISES
-        for v in body.split(' '):
-            if re.match(r'\d+', v):
-                limit = int(v)
-            for ent_k, ent_v in gEntities.iteritems():
-                if ent_v == v.title():
-                    entity_type = ent_k
-                    break
-
-        if not gLoaded:
-            init(conference)
-
-        i, top_list = 0, {}
-        for jid, values in gProfiles[conference].items():
-            i += 1
-            if i >= limit:
+    limit, entity_type = 10, LOISES
+    for v in body.split(' '):
+        if re.match(r'\d+', v):
+            limit = int(v)
+        for ent_k, ent_v in gEntities.iteritems():
+            if ent_v == v.title():
+                entity_type = ent_k
                 break
-            if values.has_key(entity_type):
-                top_list[values['aliases'][0]] = values[entity_type]
 
-        i, message = 1, ''
-        for nickname, value in dict(sorted(top_list.items(), key=operator.itemgetter(1))).items():
-            message += '%d. %s (%d)\n' % (i, nickname, value)
-            i += 1
-    else:
-        message = 'Только в конференции.'
+    if not gLoaded:
+        init(conference)
+
+    i, top_list = 0, {}
+    for jid, values in gProfiles[conference].items():
+        i += 1
+        if i >= limit:
+            break
+        if values.has_key(entity_type):
+            top_list[_get_main_nickname_by_jid(jid, conference)] = values[entity_type]
+
+    i, message = 0, 'Топ (' + gEntities[entity_type].lower() + '):\n'
+    for nickname, value in sorted(top_list.iteritems(), key=operator.itemgetter(1), reverse=True):
+        i += 1
+        message += '%d. %s (%d)\n' % (i, nickname, value)
+    # else:
+    #     message = 'Только в конференции.'
 
     reply(type, source, message)
 
@@ -279,6 +279,21 @@ def _get_main_jid_by_nickname(nickname, conference):
     nickname = _get_main_nickname(nickname, conference)
     if gUsers.has_key(conference) and nickname in gUsers[conference].keys():
         result = gUsers[conference][nickname]
+
+    return result
+
+def _get_main_nickname_by_jid(jid, conference):
+    """
+    Найти и вернуть главный никнейм по JID.
+    """
+    global gJids, gUsers
+
+    result = None
+    jid = _get_main_jid(jid, conference)
+    for _nickname, _jid in gUsers[conference].items():
+        if _jid == jid:
+            result = _nickname
+            break
 
     return result
 
