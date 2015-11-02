@@ -69,10 +69,13 @@ def handler_show_router(type, source, body):
     """
         Обработчик команды «покажи».
     """
-    global gAliases
+    global gAliases, gLoaded
 
     params = _parse_router_params(body)
     conference = source[1]
+
+    if not gLoaded:
+        init(conference)
 
     if re.match(ur'(ники|алиасы)', params['command'], re.I | re.U):
         if params['arguments'].__len__() > 0:
@@ -83,12 +86,26 @@ def handler_show_router(type, source, body):
             if nickname_main is not None:
                 reply(type, source, ', '.join(gAliases[conference][nickname_main]))
 
+    if re.match(ur'(жиды?|jids?)', params['command'], re.I | re.U):
+        if params['arguments'].__len__() > 0:
+            nickname = params['arguments'].pop(0)
+            jid_main = _get_main_jid_by_nickname(nickname, conference)
+            logging.debug(nickname)
+            logging.debug(jid_main)
+            if jid_main:
+                reply(type, source, ', '.join(gJids[conference][jid_main]))
+
 def handler_add_router(type, source, body):
     """
         Обработчик команды «добавь». Добавь профиль, добавь алиас, добавь жид
     """
+    global gLoaded
+
     # можно передать ник юзера, заэкранировав пробел бекслешем.
     params = _parse_router_params(body)
+
+    if not gLoaded:
+        init(source[1])
 
     if re.match(ur'(юзер[а-я]?|профиль)', params['command'], re.I | re.U):
         for arg in params['arguments']:
@@ -108,21 +125,62 @@ def _add_alias(type, source, arguments):
         nickname_to = arguments[0]
         alias = arguments[1]
 
-        main_nickname = _get_main_nickname(nickname_to, conference)
-        if gAliases.has_key(conference) and main_nickname is not None:
-            if alias not in gAliases[conference][main_nickname]:
-                gAliases[conference][main_nickname].append(alias)
-                _save_profiles(conference)
-            message = 'Ok'
+        alias_user = _get_main_nickname(alias, conference)
+        if not alias_user:
+            main_nickname = _get_main_nickname(nickname_to, conference)
+            if gAliases.has_key(conference) and main_nickname is not None:
+                if alias not in gAliases[conference][main_nickname]:
+                    gAliases[conference][main_nickname].append(alias)
+                    _save_profiles(conference)
+                message = 'Ok'
+            else:
+                message = 'Не зарегистрирован'
         else:
-            message = 'Не зарегистрирован'
+            message = 'Занят %s' % alias_user
     else:
         message = 'Нехватает аргументов.'
 
     reply(type, source, message)
 
 def _add_jid(type, source, arguments):
-    pass
+    global gJids
+
+    message = ''
+    if len(arguments) >= 2:
+        conference = source[1]
+        nickname_to = arguments[0]
+        jid = _get_jid(nickname_to, conference)
+        jid_new = arguments[1]
+
+        if jid_new and re.match(r'^[^@]+@[^@.]+(\.[^@.]+)+$', jid_new, re.I | re.U):
+
+            main_jid_new = _get_main_jid(jid_new, conference)
+            if main_jid_new is None:
+                if jid:
+                    main_jid = _get_main_jid(jid, conference)
+                else:
+                    main_jid = _get_main_jid_by_nickname(nickname_to, conference)
+                    if main_jid is None:
+                        main_jid = _get_main_jid(nickname_to, conference)
+
+                if main_jid:
+                    if gJids.has_key(conference):
+                        gJids[conference][main_jid].append(jid_new)
+                        _save_profiles(conference)
+                        message = 'Ok'
+                    # else:
+                    #     message = 'Не зарегистрирован'
+                else:
+                    message = 'Не зарегистрирован %s' % nickname_to
+            else:
+                message = 'Уже используется у %s' % _get_main_nickname_by_jid(main_jid_new, conference)
+        else:
+            message = 'Третий аргумент не похож на JID'
+    else:
+        message = 'Нехватает аргументов.'
+
+    if len(message) > 0:
+        reply(type, source, message)
 
 def _add_user(type, source, nickname):
     global gProfiles, gEntities, gUsers
@@ -130,9 +188,6 @@ def _add_user(type, source, nickname):
     message = ''
     # if type == 'public':
     conference = source[1]
-
-    if not gLoaded:
-        init(conference)
 
     if len(nickname.strip()) == 0:
         message = 'Забыл указать ник нового юзера'
@@ -235,6 +290,13 @@ def handler_profile(type, source, body):
 
     reply(type, source, message)
 
+def _get_jid(nickname, conference):
+    result = handler_jid(conference + '/' + nickname)
+    if result == conference:
+        result = None
+
+    return result
+
 def _get_main_nickname(nickname, conference):
     """
     Найти и вернуть главный никнейм по никнейму или алиасу.
@@ -244,6 +306,9 @@ def _get_main_nickname(nickname, conference):
     result = None
     if gUsers.has_key(conference) and nickname in gUsers[conference].keys():
         result = nickname
+
+    if result is None:
+        result = _get_main_nickname_by_jid(_get_jid(nickname, conference), conference)
 
     if result is None and gAliases.has_key(conference):
         for main_nickname, aliases_list in gAliases[conference].iteritems():
@@ -305,9 +370,6 @@ def _add_entity(entity_type, type, source, body):
         conference = source[1]
         nickname_from = source[2]
         nickname_to = body
-
-        if not gLoaded:
-            init(conference)
 
         nickname_main_to = _get_main_nickname(nickname_to, conference)
         if nickname_main_to is not None:
@@ -395,7 +457,7 @@ def _save_profiles(conference = ''):
         ))
 
 
-handler_register("01si", init)
+handler_register("01si", init) # join_groupchat
 command_handler(handler_profile, 10, "profile")
 command_handler(handler_top, 10, "profile")
 command_handler(handler_add_router, 15, "profile")
