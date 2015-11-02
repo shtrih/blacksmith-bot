@@ -244,7 +244,7 @@ iAmConnected = lambda: "jClient" in globals() and jClient.isConnected()
 
 ## Crashfile writer.
 def lytic_crashlog(handler, command = None, comment = None):
-	dir, handler, number, trace = "feillog", handler.func_name, (len(ERRORS.keys()) + 1), format_exc()
+	dir, handler, number, trace = "faillog", handler.func_name, (len(ERRORS.keys()) + 1), format_exc()
 	text = str()
 	if trace != LAST["error"]:
 		LAST["error"] = trace
@@ -257,7 +257,7 @@ def lytic_crashlog(handler, command = None, comment = None):
 		else:
 			Print("\n\nError: can't execute \"%s\"!" % handler, color2)
 		INFO['cfw'] += 1
-		filename = "%s/error[%d]%s.crash" % (dir, INFO["cfw"], time.strftime("[%H.%M.%S][%d.%m.%Y]"))
+		filename = "%s/error%s[%d].crash" % (dir, time.strftime("[%d.%m.%Y][%H.%M.%S]"), INFO["cfw"])
 		ERRORS[number] = filename
 		if not os.path.exists(dir):
 			os.mkdir(dir, 0755)
