@@ -5,15 +5,6 @@ import operator
 
 __author__ = 'shtrih'
 
-"""
-добавь жид shtrh жид@жид
-добавь алиас shtrih штрих
-профиль [shtrih]
-
-лойс/зашквор ник[:,]
-топ 10
-дно 10
-"""
 execfile("imports/command_handler_custom.py")
 
 import logging
@@ -371,23 +362,19 @@ def _add_entity(entity_type, type, source, body):
         nickname_from = source[2]
         nickname_to = body
 
-        nickname_main_to = _get_main_nickname(nickname_to, conference)
-        if nickname_main_to is not None:
-            jid_to = handler_jid(conference + '/' + nickname_main_to)
-        else:
-            jid_to = handler_jid(conference + '/' + nickname_to)
+        jid_to = handler_jid(conference + '/' + nickname_to)
         jid_main_to = _get_main_jid(jid_to, conference)
+        if jid_main_to is None or jid_main_to == conference:
+            jid_main_to = _get_main_jid_by_nickname(nickname_to, conference)
 
-        if nickname_main_to is not None or jid_main_to is not None:
+        if jid_main_to is not None:
             # проверка, что голосующий не голосует за свой алиас
             nickname_main_from = _get_main_nickname(nickname_from, conference)
             jid_main_from = _get_main_jid_by_nickname(nickname_from, conference)
             logging.debug(nickname_main_from)
             logging.debug(jid_main_from)
-            if nickname_main_from is not None and nickname_main_from != nickname_main_to \
-                    and jid_main_to is not None and jid_main_to != jid_main_from \
-                    or nickname_main_from is None and jid_main_from is None:
-                if nickname_to in GROUPCHATS[conference] or nickname_main_to in GROUPCHATS[conference]:
+            if jid_main_to is not None and jid_main_to != jid_main_from:
+                # if nickname_to in GROUPCHATS[conference] or nickname_main_to in GROUPCHATS[conference]:
                     if not gProfiles[conference].has_key(jid_main_to):
                         gProfiles[conference][jid_main_to] = {entity_type: 1}
                         for ent_t in gEntities.keys():
@@ -406,7 +393,7 @@ def _add_entity(entity_type, type, source, body):
             else:
                 message = 'Голосования за себя не учитываются.'
         # если нет ника или если юзера нет в комнате, молчим
-        elif len(nickname_to.strip()) > 0 and jid_to != conference:
+        elif len(nickname_to.strip()) > 0 and jid_main_to != conference:
             message = 'Не зарегистрирован'
     else:
         message = 'Только в конференции.'
